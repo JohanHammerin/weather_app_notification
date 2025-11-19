@@ -1,12 +1,20 @@
+.env
+.env.local
+.env.production
+*.jks
+*.p12
+*.key
+*.crt
+.gitignore
+
+
 HELP.md
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-.env
 src/main/resources/application.properties
-.gitignore
 
 ### STS ###
 .apt_generated
