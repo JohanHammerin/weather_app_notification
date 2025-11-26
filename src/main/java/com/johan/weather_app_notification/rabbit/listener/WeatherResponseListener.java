@@ -27,8 +27,6 @@ public class WeatherResponseListener {
     @RabbitListener(queues = RabbitConfig.WEATHER_WEATHER_RESPONSE_QUEUE)
     public void handleWeatherResponse(WeatherRecieverDTO weatherDTO) {
         try {
-            logger.info("✅ Received weather response for time: {}", weatherDTO.time());
-
 
             System.out.println("🌤️ Weather Update:");
             System.out.println("   Time: " + weatherDTO.time());

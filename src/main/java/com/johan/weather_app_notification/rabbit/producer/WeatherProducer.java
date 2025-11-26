@@ -14,7 +14,6 @@ public class WeatherProducer {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-
     public void sendWeatherData(WeatherProducerDTO weatherData) {
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WEATHER_EXCHANGE,
