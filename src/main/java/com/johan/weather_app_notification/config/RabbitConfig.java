@@ -26,7 +26,7 @@ public class RabbitConfig {
     public static final String WEATHER_MAIL_QUEUE = "weather-mail-queue";
     public static final String WEATHER_SUBSCRIPTION_QUEUE = "weather.subscription.due";
     public static final String WEATHER_AUTH_REQUEST_QUEUE = "auth-request-queue";
-    public static final String WEATHER_AUTH_REQUEST_RESPONSE = "auth-request-queue";
+    public static final String WEATHER_AUTH_RESPONSE_QUEUE = "auth-request-queue";
 
     // Routing keys
     public static final String WEATHER_WEATHER_REQUEST_ROUTING_KEY = "weather.request";
