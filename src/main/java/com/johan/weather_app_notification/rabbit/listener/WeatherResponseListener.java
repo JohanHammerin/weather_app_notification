@@ -5,7 +5,6 @@ import com.johan.weather_app_notification.config.RabbitConfig;
 import com.johan.weather_app_notification.dto.reciever.WeatherRecieverDTO;
 import com.johan.weather_app_notification.service.MailService;
 import com.johan.weather_app_notification.service.WeatherNotificationService;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

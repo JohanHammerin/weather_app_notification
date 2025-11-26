@@ -1,7 +1,6 @@
 package com.johan.weather_app_notification.rabbit.producer;
 
 import com.johan.weather_app_notification.config.RabbitConfig;
-import com.johan.weather_app_notification.dto.producer.WeatherProducerDTO;
 import com.johan.weather_app_notification.dto.reciever.AuthenticationRecieverDTO;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;

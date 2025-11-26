@@ -1,7 +1,6 @@
 package com.johan.weather_app_notification.service;
 
 
-import com.johan.weather_app_notification.dto.reciever.SubscriptionRecieverDTO;
 import com.johan.weather_app_notification.dto.reciever.WeatherRecieverDTO;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
