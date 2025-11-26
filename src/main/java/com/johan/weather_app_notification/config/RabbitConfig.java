@@ -33,7 +33,6 @@ public class RabbitConfig {
     public static final String WEATHER_WEATHER_RESPONSE_ROUTING_KEY = "weather.response";
     public static final String WEATHER_AUTH_REQUEST_ROUTING_KEY = "auth.request";
     public static final String WEATHER_AUTH_RESPONSE_ROUTING_KEY = "auth.response";
-
     public static final String WEATHER_MAIL_ROUTING_KEY = "weather.mail";
     public static final String WEATHER_SUBSCRIPTION_ROUTING_KEY = "weather.subscription";
 
@@ -46,7 +45,6 @@ public class RabbitConfig {
 
         Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
 
-        // ✅ VIKTIGT: Konfigurera för att använda target type istället för __TypeId__ header
         converter.setAlwaysConvertToInferredType(false); // Default behavior
 
         return converter;
@@ -92,6 +90,17 @@ public class RabbitConfig {
         return new Queue(WEATHER_SUBSCRIPTION_QUEUE, true);
     }
 
+    // ✅ AUTH QUEUES - NYA
+    @Bean
+    public Queue authRequestQueue() {
+        return new Queue(WEATHER_AUTH_REQUEST_QUEUE, true);
+    }
+
+    @Bean
+    public Queue authResponseQueue() {
+        return new Queue(WEATHER_AUTH_RESPONSE_QUEUE, true);
+    }
+
     // ✅ EXCHANGE
     @Bean
     public DirectExchange exchange() {
@@ -129,5 +138,22 @@ public class RabbitConfig {
                 .bind(weatherSubscriptionQueue())
                 .to(exchange())
                 .with(WEATHER_SUBSCRIPTION_ROUTING_KEY);
+    }
+
+    // ✅ AUTH BINDINGS - NYA
+    @Bean
+    public Binding authRequestBinding() {
+        return BindingBuilder
+                .bind(authRequestQueue())
+                .to(exchange())
+                .with(WEATHER_AUTH_REQUEST_ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding authResponseBinding() {
+        return BindingBuilder
+                .bind(authResponseQueue())
+                .to(exchange())
+                .with(WEATHER_AUTH_RESPONSE_ROUTING_KEY);
     }
 }

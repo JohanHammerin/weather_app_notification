@@ -3,11 +3,10 @@ package com.johan.weather_app_notification.rabbit.listener;
 import com.johan.weather_app_notification.Globals;
 import com.johan.weather_app_notification.config.RabbitConfig;
 import com.johan.weather_app_notification.dto.reciever.AuthenticationRecieverDTO;
-import com.johan.weather_app_notification.dto.reciever.WeatherRecieverDTO;
-import com.johan.weather_app_notification.service.MailService;
-import com.johan.weather_app_notification.service.WeatherNotificationService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AuthListener {
 
 
