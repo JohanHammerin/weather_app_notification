@@ -1,5 +1,6 @@
 package com.johan.weather_app_notification.service;
 
+import com.johan.weather_app_notification.Globals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,6 +61,8 @@ public class MailService {
 
             // Skicka request
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            Globals.setGlobalEmail("");
+
 
             logger.info("📨 Mailjet API Response - Status: {}, Body: {}", response.statusCode(), response.body());
 
