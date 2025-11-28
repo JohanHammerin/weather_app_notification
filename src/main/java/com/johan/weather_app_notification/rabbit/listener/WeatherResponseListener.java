@@ -1,6 +1,5 @@
 package com.johan.weather_app_notification.rabbit.listener;
 
-import com.johan.weather_app_notification.Globals;
 import com.johan.weather_app_notification.config.RabbitConfig;
 import com.johan.weather_app_notification.dto.reciever.WeatherRecieverDTO;
 import com.johan.weather_app_notification.service.MailService;

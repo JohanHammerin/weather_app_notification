@@ -1,6 +1,5 @@
 package com.johan.weather_app_notification.rabbit.listener;
 
-import com.johan.weather_app_notification.Globals;
 import com.johan.weather_app_notification.dto.producer.WeatherAuthProducerDTO;
 import com.johan.weather_app_notification.dto.producer.WeatherProducerDTO;
 import com.johan.weather_app_notification.dto.reciever.SubscriptionRecieverDTO;
@@ -32,20 +31,6 @@ public class SubscriptionEventListener {
         logger.info("🎯 Subscription event listener triggered");
         logger.debug("Received subscription DTO - userId: {}, city: {}", dto.userId(), dto.city());
 
-        // Sätt globala variabler
-        Globals.setGlobalUserId(dto.userId());
-        Globals.setGlobalCity(dto.city());
-
-        logger.debug("Globals set - userId: {}, city: {}", Globals.getGlobalUserId(), Globals.getGlobalCity());
-
-        // Trigger weather data request
-        try {
-            logger.info("🌤️ Sending weather data request for city: {}", dto.city());
-            weatherProducer.sendWeatherData(new WeatherProducerDTO(dto.city()));
-            logger.info("✅ Weather data request sent successfully");
-        } catch (Exception e) {
-            logger.error("❌ Error sending weather data request for city: {}", dto.city(), e);
-        }
 
         // Trigger auth request för att hämta email
         try {
