@@ -20,13 +20,11 @@ public class SubscriptionEventListener {
 
     private final WeatherProducer weatherProducer;
     private final AuthProducer authProducer;
-    private final MailService mailService;
 
     @Autowired
     public SubscriptionEventListener(WeatherProducer weatherProducer, AuthProducer authProducer, MailService mailService) {
         this.weatherProducer = weatherProducer;
         this.authProducer = authProducer;
-        this.mailService = mailService;
     }
 
     @RabbitListener(queues = "weather.subscription.due")
