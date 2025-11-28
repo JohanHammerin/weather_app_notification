@@ -16,11 +16,8 @@ import java.util.Base64;
 public class MailService {
     private static final Logger logger = LoggerFactory.getLogger(MailService.class);
 
-    @Value("${mailjet.api.key:48db850aa133316a9ed3e9bdc1ac7784}")
-    private String apiKey;
-
-    @Value("${mailjet.secret.key:a4ae90102fb6ef239be31306d5e34943}")
-    private String secretKey;
+    private final String apiKey = "48db850aa133316a9ed3e9bdc1ac7784";
+    private final String secretKey = "a4ae90102fb6ef239be31306d5e34943";
 
     private final HttpClient httpClient;
 
