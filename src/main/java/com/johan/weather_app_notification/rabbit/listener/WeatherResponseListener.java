@@ -39,6 +39,7 @@ public class WeatherResponseListener {
             String to = Globals.getGlobalEmail();
             String content = weatherNotificationService.buildWeatherEmailContent(Globals.getGlobalCity(), weatherDTO);
             mailService.sendMail(to, "Vädernotis", content);
+            Globals.setGlobalEmail("");
 
 
         } catch (Exception e) {
