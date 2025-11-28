@@ -20,28 +20,37 @@ public class SubscriptionEventListener {
     private final WeatherProducer weatherProducer;
     private final AuthProducer authProducer;
 
-    @Autowired
-    public SubscriptionEventListener(WeatherProducer weatherProducer, AuthProducer authProducer, MailService mailService) {
+    public SubscriptionEventListener(WeatherProducer weatherProducer, AuthProducer authProducer) {
         this.weatherProducer = weatherProducer;
         this.authProducer = authProducer;
     }
 
-    @RabbitListener(queues = "weather.subscription.due")
-    public void handleSubscriptionEvent(SubscriptionRecieverDTO dto) {
-        logger.info("🎯 Subscription event listener triggered");
-        logger.debug("Received subscription DTO - userId: {}, city: {}", dto.userId(), dto.city());
 
+        @RabbitListener(queues = "weather.subscription.due")
+        public void handleSubscriptionEvent(SubscriptionRecieverDTO dto) {
+            logger.info("🎯 Subscription event listener triggered");
+            logger.info("📋 Processing - userId: {}, city: {}", dto.userId(), dto.city());
 
-        // Trigger auth request för att hämta email
-        try {
-            logger.info("🔐 Sending auth request for userId: {}", dto.userId());
-            WeatherAuthProducerDTO weatherAuthProducerDTO = new WeatherAuthProducerDTO(dto.userId());
-            authProducer.getEmail(weatherAuthProducerDTO);
-            logger.info("✅ Auth request sent successfully");
-        } catch (Exception e) {
-            logger.error("❌ Error sending auth request for userId: {}", dto.userId(), e);
+            // Skicka weather request med userId
+            try {
+                logger.info("🌤️ Sending weather data request for city: {}, userId: {}", dto.city(), dto.userId());
+                WeatherProducerDTO weatherRequest = new WeatherProducerDTO(dto.city(), dto.userId()); // ✅ Skicka userId
+                weatherProducer.sendWeatherData(weatherRequest);
+                logger.info("✅ Weather data request sent successfully");
+            } catch (Exception e) {
+                logger.error("❌ Error sending weather data request for city: {}", dto.city(), e);
+            }
+
+            // Skicka auth request
+            try {
+                logger.info("🔐 Sending auth request for userId: {}", dto.userId());
+                WeatherAuthProducerDTO authRequest = new WeatherAuthProducerDTO(dto.userId());
+                authProducer.getEmail(authRequest);
+                logger.info("✅ Auth request sent successfully");
+            } catch (Exception e) {
+                logger.error("❌ Error sending auth request for userId: {}", dto.userId(), e);
+            }
+
+            logger.info("🎉 Subscription event processing completed");
         }
-
-        logger.info("🎉 Subscription event processing completed for userId: {}, city: {}", dto.userId(), dto.city());
     }
-}
