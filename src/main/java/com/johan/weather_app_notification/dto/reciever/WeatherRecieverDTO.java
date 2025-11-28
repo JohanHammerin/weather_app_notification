@@ -6,7 +6,8 @@ public record WeatherRecieverDTO(
         double temperatureMax,
         String weatherStatus,
         double precipitationSum,
-        String email
+        String email,
+        String city
 
 ) {
 }

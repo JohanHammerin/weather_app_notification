@@ -35,9 +35,8 @@ public class WeatherResponseListener {
             System.out.println("   Precipitation: " + weatherDTO.precipitationSum() + " mm");
 
 
-            String to = Globals.getGlobalEmail();
-            String content = weatherNotificationService.buildWeatherEmailContent(Globals.getGlobalCity(), weatherDTO);
-            mailService.sendMail(to, "Vädernotis", content);
+            String content = weatherNotificationService.buildWeatherEmailContent(weatherDTO.city(), weatherDTO);
+            mailService.sendMail(weatherDTO.email(), "Vädernotis", content);
 
 
         } catch (Exception e) {

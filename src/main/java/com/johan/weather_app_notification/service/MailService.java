@@ -59,7 +59,6 @@ public class MailService {
 
             // Skicka request
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            Globals.setGlobalEmail("");
 
 
             logger.info("📨 Mailjet API Response - Status: {}, Body: {}", response.statusCode(), response.body());
