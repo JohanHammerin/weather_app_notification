@@ -1,15 +1,14 @@
 package com.johan.weather_app_notification.rabbit.listener;
 
+import com.johan.weather_app_notification.GlobalVariables.Globals;
 import com.johan.weather_app_notification.dto.producer.WeatherAuthProducerDTO;
 import com.johan.weather_app_notification.dto.producer.WeatherProducerDTO;
 import com.johan.weather_app_notification.dto.reciever.SubscriptionRecieverDTO;
 import com.johan.weather_app_notification.rabbit.producer.AuthProducer;
 import com.johan.weather_app_notification.rabbit.producer.WeatherProducer;
-import com.johan.weather_app_notification.service.MailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -30,11 +29,13 @@ public class SubscriptionEventListener {
         public void handleSubscriptionEvent(SubscriptionRecieverDTO dto) {
             logger.info("🎯 Subscription event listener triggered");
             logger.info("📋 Processing - userId: {}, city: {}", dto.userId(), dto.city());
+            Globals.setGlobalCity(dto.city());
+            Globals.setGlobalUserid(dto.userId());
 
             // Skicka weather request med userId
             try {
                 logger.info("🌤️ Sending weather data request for city: {}, userId: {}", dto.city(), dto.userId());
-                WeatherProducerDTO weatherRequest = new WeatherProducerDTO(dto.city(), dto.userId()); // ✅ Skicka userId
+                WeatherProducerDTO weatherRequest = new WeatherProducerDTO(Globals.getGlobalCity()); // ✅ Skicka userId
                 weatherProducer.sendWeatherData(weatherRequest);
                 logger.info("✅ Weather data request sent successfully");
             } catch (Exception e) {
@@ -44,7 +45,7 @@ public class SubscriptionEventListener {
             // Skicka auth request
             try {
                 logger.info("🔐 Sending auth request for userId: {}", dto.userId());
-                WeatherAuthProducerDTO authRequest = new WeatherAuthProducerDTO(dto.userId());
+                WeatherAuthProducerDTO authRequest = new WeatherAuthProducerDTO(Globals.GLOBAL_USERID);
                 authProducer.getEmail(authRequest);
                 logger.info("✅ Auth request sent successfully");
             } catch (Exception e) {

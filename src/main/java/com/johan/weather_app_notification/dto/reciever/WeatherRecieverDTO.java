@@ -8,6 +8,5 @@ public record WeatherRecieverDTO(
         double temperatureMax,
         String weatherStatus,
         double precipitationSum,
-        UUID userId,        // ✅ Lägg till userId
         String city
 ) {}

@@ -23,7 +23,7 @@ public class AuthProducer {
         rabbitTemplate.convertAndSend(
                 RabbitConfig.WEATHER_EXCHANGE,
                 RabbitConfig.WEATHER_AUTH_REQUEST_ROUTING_KEY,
-                dto  // ✅ KORREKT: Skickar hela DTO objektet
+                dto
         );
     }
 }

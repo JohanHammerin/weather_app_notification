@@ -1,73 +1,79 @@
 package com.johan.weather_app_notification.rabbit.listener;
 
+import com.johan.weather_app_notification.GlobalVariables.Globals;
 import com.johan.weather_app_notification.config.RabbitConfig;
 import com.johan.weather_app_notification.dto.reciever.WeatherRecieverDTO;
-import com.johan.weather_app_notification.service.MailService;
-import com.johan.weather_app_notification.service.WeatherNotificationService;
+import com.johan.weather_app_notification.service.WeatherEmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 @Component
 public class WeatherResponseListener {
 
     private static final Logger logger = LoggerFactory.getLogger(WeatherResponseListener.class);
-    private final WeatherNotificationService weatherNotificationService;
-    private final MailService mailService;
+
+    // Använd WeatherEmailService istället för två separata services
+    private final WeatherEmailService weatherEmailService;
 
     @Autowired
-    public WeatherResponseListener(WeatherNotificationService weatherNotificationService, MailService mailService) {
-        this.weatherNotificationService = weatherNotificationService;
-        this.mailService = mailService;
+    public WeatherResponseListener(WeatherEmailService weatherEmailService) {
+        this.weatherEmailService = weatherEmailService;
     }
 
     @RabbitListener(queues = RabbitConfig.WEATHER_WEATHER_RESPONSE_QUEUE)
     public void handleWeatherResponse(WeatherRecieverDTO weatherDTO) {
         try {
-            logger.info("🌤️ Received weather data for userId: {}, city: {}", weatherDTO.userId(), weatherDTO.city());
+            String userEmail = Globals.getGlobalEmail();
+            String city = Globals.getGlobalCity();
 
-            // Hämta email BASERAT PÅ userId från DTO
-            String userEmail = getUserEmailFromAuthService(weatherDTO.userId());
+            logger.info("🌤️ Received weather data for user: {}, city: {}", userEmail, city);
 
-            if (userEmail == null || userEmail.isEmpty()) {
-                logger.error("❌ No email found for userId: {}", weatherDTO.userId());
-                return;
+            // Logga väderdata
+            logger.info("Weather details for {}:", city);
+            logger.info("   📅 Time: {}", weatherDTO.time());
+            logger.info("   🌡️ Temperature: {:.1f}°C - {:.1f}°C",
+                    weatherDTO.temperatureMin(), weatherDTO.temperatureMax());
+            logger.info("   ☁️ Status: {}", weatherDTO.weatherStatus());
+            logger.info("   💧 Precipitation: {:.1f} mm", weatherDTO.precipitationSum());
+
+            // Skicka vädernotifikation med HTML-format
+            String recipientName = extractNameFromEmail(userEmail);
+            boolean emailSent = weatherEmailService.sendWeatherNotification(
+                    userEmail,
+                    recipientName,
+                    city,
+                    weatherDTO
+            );
+
+            if (emailSent) {
+                logger.info("✅ Weather notification successfully sent to: {}", userEmail);
+            } else {
+                logger.error("❌ Failed to send weather notification to: {}", userEmail);
             }
-
-            System.out.println("🌤️ Weather Update:");
-            System.out.println("   Time: " + weatherDTO.time());
-            System.out.println("   Min temp: " + weatherDTO.temperatureMin() + "°C");
-            System.out.println("   Max temp: " + weatherDTO.temperatureMax() + "°C");
-            System.out.println("   Status: " + weatherDTO.weatherStatus());
-            System.out.println("   Precipitation: " + weatherDTO.precipitationSum() + " mm");
-
-            String content = weatherNotificationService.buildWeatherEmailContent(weatherDTO.city(), weatherDTO);
-
-            logger.info("📧 Sending weather email to: {} for city: {}", userEmail, weatherDTO.city());
-            mailService.sendMail(userEmail, "Vädernotis", content);
 
         } catch (Exception e) {
             logger.error("❌ Error handling weather response", e);
         }
     }
 
-    private String getUserEmailFromAuthService(UUID userId) {
-        try {
-            // TEMPORÄR LÖSNING - hårdkoda mapping
-            if (UUID.fromString("c6346d56-b8c2-4187-8a8c-a30826df1e29").equals(userId)) {
-                return "tommy.haraldsson@stud.sti.se";
-            } else if (UUID.fromString("16e9261f-7f32-4745-9604-1dd83d080343").equals(userId)) {
-                return "alyckenius@gmail.com";
-            }
-            logger.warn("⚠️ No email mapping for userId: {}", userId);
-            return null;
-        } catch (Exception e) {
-            logger.error("❌ Failed to get email for userId: {}", userId, e);
-            return null;
+    // Hjälpmetod för att extrahera namn från email
+    private String extractNameFromEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            return "Weather User";
         }
+
+        // Ta bort @-domänen och ersätt punkt med mellanslag
+        String namePart = email.split("@")[0];
+
+        // Kapitalisera första bokstaven
+        if (namePart.length() > 1) {
+            return namePart.substring(0, 1).toUpperCase() +
+                    namePart.substring(1).toLowerCase();
+        }
+
+        return namePart;
     }
 }
