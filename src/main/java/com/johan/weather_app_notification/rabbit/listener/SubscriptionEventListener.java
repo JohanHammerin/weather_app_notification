@@ -29,13 +29,14 @@ public class SubscriptionEventListener {
         public void handleSubscriptionEvent(SubscriptionRecieverDTO dto) throws InterruptedException {
             logger.info("🎯 Subscription event listener triggered");
             logger.info("📋 Processing - userId: {}, city: {}", dto.userId(), dto.city());
-            Globals.setGlobalCity(dto.city());
-            Globals.setGlobalUserid(dto.userId());
+            Globals.GLOBAL_CITY = dto.city();
+            Globals.GLOBAL_USERID = dto.userId();
+
 
             // Skicka weather request med userId
             try {
                 logger.info("🌤️ Sending weather data request for city: {}, userId: {}", dto.city(), dto.userId());
-                WeatherProducerDTO weatherRequest = new WeatherProducerDTO(Globals.getGlobalCity()); // ✅ Skicka userId
+                WeatherProducerDTO weatherRequest = new WeatherProducerDTO(Globals.GLOBAL_CITY); // ✅ Skicka userId
                 weatherProducer.sendWeatherData(weatherRequest);
                 logger.info("✅ Weather data request sent successfully");
             } catch (Exception e) {
@@ -46,7 +47,7 @@ public class SubscriptionEventListener {
             // Skicka auth request
             try {
                 logger.info("🔐 Sending auth request for userId: {}", dto.userId());
-                WeatherAuthProducerDTO authRequest = new WeatherAuthProducerDTO(Globals.getGlobalUserid());
+                WeatherAuthProducerDTO authRequest = new WeatherAuthProducerDTO(Globals.GLOBAL_USERID);
                 authProducer.getEmail(authRequest);
                 logger.info("✅ Auth request sent successfully");
             } catch (Exception e) {

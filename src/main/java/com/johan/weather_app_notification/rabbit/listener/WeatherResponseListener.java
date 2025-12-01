@@ -26,8 +26,8 @@ public class WeatherResponseListener {
     @RabbitListener(queues = RabbitConfig.WEATHER_WEATHER_RESPONSE_QUEUE)
     public void handleWeatherResponse(WeatherRecieverDTO weatherDTO) {
         try {
-            String userEmail = Globals.getGlobalEmail();
-            String city = Globals.getGlobalCity();
+            String userEmail = Globals.GLOBAL_EMAIL;
+            String city = Globals.GLOBAL_CITY;
 
             logger.info("🌤️ Received weather data for user: {}, city: {}", userEmail, city);
 

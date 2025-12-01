@@ -11,6 +11,6 @@ public class AuthListener {
 
     @RabbitListener(queues = RabbitConfig.WEATHER_AUTH_RESPONSE_QUEUE)
     public void handleWeatherResponse(AuthReceiverDTO dto) {
-        Globals.setGlobalEmail(dto.email());
+        Globals.GLOBAL_EMAIL = dto.email();
     }
 }
