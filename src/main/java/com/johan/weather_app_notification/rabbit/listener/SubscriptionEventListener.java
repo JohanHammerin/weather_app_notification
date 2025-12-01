@@ -26,7 +26,7 @@ public class SubscriptionEventListener {
 
 
         @RabbitListener(queues = "weather.subscription.due")
-        public void handleSubscriptionEvent(SubscriptionRecieverDTO dto) {
+        public void handleSubscriptionEvent(SubscriptionRecieverDTO dto) throws InterruptedException {
             logger.info("🎯 Subscription event listener triggered");
             logger.info("📋 Processing - userId: {}, city: {}", dto.userId(), dto.city());
             Globals.setGlobalCity(dto.city());
@@ -42,6 +42,7 @@ public class SubscriptionEventListener {
                 logger.error("❌ Error sending weather data request for city: {}", dto.city(), e);
             }
 
+            Thread.sleep(5000);
             // Skicka auth request
             try {
                 logger.info("🔐 Sending auth request for userId: {}", dto.userId());
