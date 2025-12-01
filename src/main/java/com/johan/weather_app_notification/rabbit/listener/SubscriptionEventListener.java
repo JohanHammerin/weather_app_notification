@@ -46,7 +46,7 @@ public class SubscriptionEventListener {
             // Skicka auth request
             try {
                 logger.info("🔐 Sending auth request for userId: {}", dto.userId());
-                WeatherAuthProducerDTO authRequest = new WeatherAuthProducerDTO(Globals.GLOBAL_USERID);
+                WeatherAuthProducerDTO authRequest = new WeatherAuthProducerDTO(Globals.getGlobalUserid());
                 authProducer.getEmail(authRequest);
                 logger.info("✅ Auth request sent successfully");
             } catch (Exception e) {
