@@ -1,5 +1,6 @@
 package com.johan.weather_app_notification.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.DirectExchange;
@@ -12,37 +13,44 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.boot.autoconfigure.amqp.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Konfiguration för RabbitMQ.
+ * Sätter upp Exchange, Köer och Routing Keys samt hanterar JSON-serialisering.
+ */
 @Configuration
 public class RabbitConfig {
 
-    // Exchange
-    public static final String WEATHER_EXCHANGE = "weather-exchange";
+    // --- Exchange Name ---
+    public static final String EXCHANGE_WEATHER = "weather-exchange";
 
-    // Queues
-    public static final String WEATHER_WEATHER_REQUEST_QUEUE = "weather-request-queue";
-    public static final String WEATHER_WEATHER_RESPONSE_QUEUE = "weather-response-queue";
-    public static final String WEATHER_MAIL_QUEUE = "weather-mail-queue";
-    public static final String WEATHER_SUBSCRIPTION_QUEUE = "weather.subscription.due";
-    public static final String WEATHER_AUTH_REQUEST_QUEUE = "auth-request-queue";
-    public static final String WEATHER_AUTH_RESPONSE_QUEUE = "auth-response-queue";
+    // --- Queue Names ---
+    // Namngivning optimerad för att gruppera alla köer under prefixet "QUEUE_"
+    public static final String QUEUE_WEATHER_REQUEST = "weather-request-queue";
+    public static final String QUEUE_WEATHER_RESPONSE = "weather-response-queue";
+    public static final String QUEUE_MAIL = "weather-mail-queue";
+    public static final String QUEUE_SUBSCRIPTION = "weather.subscription.due";
+    public static final String QUEUE_AUTH_REQUEST = "auth-request-queue";
+    public static final String QUEUE_AUTH_RESPONSE = "auth-response-queue";
 
-    // Routing keys
-    public static final String WEATHER_WEATHER_REQUEST_ROUTING_KEY = "weather.request";
-    public static final String WEATHER_WEATHER_RESPONSE_ROUTING_KEY = "weather.response";
-    public static final String WEATHER_AUTH_REQUEST_ROUTING_KEY = "auth.request";
-    public static final String WEATHER_AUTH_RESPONSE_ROUTING_KEY = "auth.response";
-    public static final String WEATHER_MAIL_ROUTING_KEY = "weather.mail";
-    public static final String WEATHER_SUBSCRIPTION_ROUTING_KEY = "weather.subscription";
+    // --- Routing Keys ---
+    public static final String ROUTING_KEY_WEATHER_REQUEST = "weather.request";
+    public static final String ROUTING_KEY_WEATHER_RESPONSE = "weather.response";
+    public static final String ROUTING_KEY_AUTH_REQUEST = "auth.request";
+    public static final String ROUTING_KEY_AUTH_RESPONSE = "auth.response";
+    public static final String ROUTING_KEY_MAIL = "weather.mail";
+    public static final String ROUTING_KEY_SUBSCRIPTION = "weather.subscription";
 
+    /**
+     * Konverterare som gör att vi kan skicka Java-objekt (DTOs) som automatiskt
+     * omvandlas till JSON i meddelandena.
+     */
     @Bean
     public MessageConverter jsonMessageConverter() {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.findAndRegisterModules();
         Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
         converter.setAlwaysConvertToInferredType(false);
-
         return converter;
     }
 
@@ -63,86 +71,86 @@ public class RabbitConfig {
         return factory;
     }
 
+    // --- Exchange Definition ---
+
+    @Bean
+    public DirectExchange exchange() {
+        return new DirectExchange(EXCHANGE_WEATHER);
+    }
+
+    // --- Queue Definitions ---
+
     @Bean
     public Queue requestQueue() {
-        return new Queue(WEATHER_WEATHER_REQUEST_QUEUE, true);
+        return new Queue(QUEUE_WEATHER_REQUEST, true); // true = durable (kön överlever om RabbitMQ startas om)
     }
 
     @Bean
     public Queue responseQueue() {
-        return new Queue(WEATHER_WEATHER_RESPONSE_QUEUE, true);
+        return new Queue(QUEUE_WEATHER_RESPONSE, true);
     }
 
     @Bean
     public Queue weatherMailQueue() {
-        return new Queue(WEATHER_MAIL_QUEUE, true);
+        return new Queue(QUEUE_MAIL, true);
     }
 
     @Bean
     public Queue weatherSubscriptionQueue() {
-        return new Queue(WEATHER_SUBSCRIPTION_QUEUE, true);
+        return new Queue(QUEUE_SUBSCRIPTION, true);
     }
 
     @Bean
     public Queue authRequestQueue() {
-        return new Queue(WEATHER_AUTH_REQUEST_QUEUE, true);
+        return new Queue(QUEUE_AUTH_REQUEST, true);
     }
 
     @Bean
     public Queue authResponseQueue() {
-        return new Queue(WEATHER_AUTH_RESPONSE_QUEUE, true);
+        return new Queue(QUEUE_AUTH_RESPONSE, true);
     }
 
-    @Bean
-    public DirectExchange exchange() {
-        return new DirectExchange(WEATHER_EXCHANGE);
-    }
+    // --- Bindings (Kopplar köer till Exchange med Routing Keys) ---
 
     @Bean
     public Binding requestBinding() {
-        return BindingBuilder
-                .bind(requestQueue())
+        return BindingBuilder.bind(requestQueue())
                 .to(exchange())
-                .with(WEATHER_WEATHER_REQUEST_ROUTING_KEY);
+                .with(ROUTING_KEY_WEATHER_REQUEST);
     }
 
     @Bean
     public Binding responseBinding() {
-        return BindingBuilder
-                .bind(responseQueue())
+        return BindingBuilder.bind(responseQueue())
                 .to(exchange())
-                .with(WEATHER_WEATHER_RESPONSE_ROUTING_KEY);
+                .with(ROUTING_KEY_WEATHER_RESPONSE);
     }
 
     @Bean
     public Binding weatherMailBinding() {
-        return BindingBuilder
-                .bind(weatherMailQueue())
+        return BindingBuilder.bind(weatherMailQueue())
                 .to(exchange())
-                .with(WEATHER_MAIL_ROUTING_KEY);
+                .with(ROUTING_KEY_MAIL);
     }
 
     @Bean
     public Binding weatherSubscriptionBinding() {
-        return BindingBuilder
-                .bind(weatherSubscriptionQueue())
+        return BindingBuilder.bind(weatherSubscriptionQueue())
                 .to(exchange())
-                .with(WEATHER_SUBSCRIPTION_ROUTING_KEY);
+                .with(ROUTING_KEY_SUBSCRIPTION);
     }
 
     @Bean
     public Binding authRequestBinding() {
-        return BindingBuilder
-                .bind(authRequestQueue())
+        return BindingBuilder.bind(authRequestQueue())
                 .to(exchange())
-                .with(WEATHER_AUTH_REQUEST_ROUTING_KEY);
+                .with(ROUTING_KEY_AUTH_REQUEST);
     }
 
     @Bean
     public Binding authResponseBinding() {
-        return BindingBuilder
-                .bind(authResponseQueue())
+        return BindingBuilder.bind(authResponseQueue())
                 .to(exchange())
-                .with(WEATHER_AUTH_RESPONSE_ROUTING_KEY);
+                .with(ROUTING_KEY_AUTH_RESPONSE);
     }
 }

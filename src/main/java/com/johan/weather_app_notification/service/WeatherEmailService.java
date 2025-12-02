@@ -1,6 +1,9 @@
 package com.johan.weather_app_notification.service;
 
-import com.johan.weather_app_notification.dto.WeatherReceiverDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.johan.weather_app_notification.dto.WeatherReceiverDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +18,9 @@ import java.util.Base64;
 
 @Service
 public class WeatherEmailService {
+
     private static final Logger logger = LoggerFactory.getLogger(WeatherEmailService.class);
+    private static final String MAILJET_URL = "https://api.mailjet.com/v3.1/send";
 
     @Value("${mailjet.api.key}")
     private String apiKey;
@@ -30,81 +35,86 @@ public class WeatherEmailService {
     private String senderName;
 
     private final HttpClient httpClient;
+    private final ObjectMapper objectMapper; // Används för att skapa säker JSON
 
-    public WeatherEmailService() {
+    public WeatherEmailService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
     }
 
-    // ✅ Här är den viktigaste metoden - kombinerar båda servicernas funktionalitet
-    public boolean sendWeatherNotification(String recipientEmail, String recipientName,
-                                           String city, WeatherReceiverDTO weatherDTO) {
+    /**
+     * Skapar mailet och delegerar sändningen.
+     * Tar emot hela DTO:n för att undvika redundanta parametrar.
+     */
+    public boolean sendWeatherNotification(String recipientName, WeatherReceiverDto dto) {
+        String subject = String.format("🌤️ Weather Update for %s", dto.city());
 
-        String subject = String.format("🌤️ Weather Update for %s", city);
+        String htmlContent = buildWeatherHtmlEmail(recipientName, dto);
+        String textContent = buildWeatherTextEmail(recipientName, dto);
 
-        // Använd HTML-version för bättre presentation
-        String htmlContent = buildWeatherHtmlEmail(recipientName, city, weatherDTO);
-        String textContent = buildWeatherTextEmail(recipientName, city, weatherDTO);
-
-        return sendMail(recipientEmail, recipientName, subject, textContent, htmlContent);
+        return sendMail(dto.email(), recipientName, subject, textContent, htmlContent);
     }
 
-    // Generisk metod för att skicka mail
-    public boolean sendMail(String to, String toName, String subject, String textPart, String htmlPart) {
+    /**
+     * Bygger JSON-payload med Jackson och skickar via Mailjet API.
+     */
+    public boolean sendMail(String toEmail, String toName, String subject, String textPart, String htmlPart) {
         try {
-            logger.info("📧 Sending email via Mailjet API to: {}", to);
+            logger.info("Förbereder att skicka email via Mailjet till: {}", toEmail);
 
-            String jsonBody = String.format(
-                    "{" +
-                            "\"Messages\":[{" +
-                            "\"From\":{\"Email\":\"%s\",\"Name\":\"%s\"}," +
-                            "\"To\":[{\"Email\":\"%s\",\"Name\":\"%s\"}]," +
-                            "\"Subject\":\"%s\"," +
-                            "\"TextPart\":\"%s\"," +
-                            "\"HTMLPart\":\"%s\"" +
-                            "}]" +
-                            "}",
-                    senderEmail,
-                    senderName,
-                    to,
-                    toName,
-                    escapeJson(subject),
-                    escapeJson(textPart),
-                    escapeJson(htmlPart)
-            );
+            // Bygg JSON säkert med Jackson (istället för String concatenation)
+            ObjectNode root = objectMapper.createObjectNode();
+            ArrayNode messages = root.putArray("Messages");
 
-            logger.debug("📦 Mailjet API Request: {}", jsonBody);
+            ObjectNode message = messages.addObject();
+
+            ObjectNode from = message.putObject("From");
+            from.put("Email", senderEmail);
+            from.put("Name", senderName);
+
+            ArrayNode to = message.putArray("To");
+            ObjectNode recipient = to.addObject();
+            recipient.put("Email", toEmail);
+            recipient.put("Name", toName);
+
+            message.put("Subject", subject);
+            message.put("TextPart", textPart);
+            message.put("HTMLPart", htmlPart);
+
+            String jsonBody = objectMapper.writeValueAsString(root);
+
+            // Skapa Auth-header
+            String authHeader = "Basic " + Base64.getEncoder()
+                    .encodeToString((apiKey + ":" + secretKey).getBytes());
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://api.mailjet.com/v3.1/send"))
+                    .uri(URI.create(MAILJET_URL))
                     .header("Content-Type", "application/json")
-                    .header("Authorization", "Basic " +
-                            Base64.getEncoder().encodeToString((apiKey + ":" + secretKey).getBytes()))
+                    .header("Authorization", authHeader)
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .timeout(Duration.ofSeconds(15))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            logger.info("📨 Mailjet API Response - Status: {}", response.statusCode());
-
-            if (response.statusCode() == 200) {
-                logger.info("✅ Email sent successfully via Mailjet API to: {}", to);
+            if (response.statusCode() == 200 || response.statusCode() == 201) {
+                logger.info("Email skickat framgångsrikt till: {}", toEmail);
                 return true;
             } else {
-                logger.error("❌ Mailjet API error - Status: {}, Response: {}", response.statusCode(), response.body());
+                logger.error("Mailjet API fel - Status: {}, Body: {}", response.statusCode(), response.body());
                 return false;
             }
 
         } catch (Exception e) {
-            logger.error("❌ Failed to send email via Mailjet API to: {}", to, e);
+            logger.error("Kunde inte skicka email till: {}", toEmail, e);
             return false;
         }
     }
 
-    // ✅ Här tar vi med den bra mailbyggnaden från WeatherNotificationService
-    private String buildWeatherHtmlEmail(String userName, String city, WeatherReceiverDTO weatherDTO) {
+    private String buildWeatherHtmlEmail(String userName, WeatherReceiverDto dto) {
+        // Jag har behållit din HTML-struktur men använder datan från DTO:n
         return String.format("""
             <!DOCTYPE html>
             <html>
@@ -115,7 +125,6 @@ public class WeatherEmailService {
                     .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px; }
                     .content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 20px; }
                     .weather-item { margin: 10px 0; padding: 10px; background-color: white; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-                    .temperature { color: #e74c3c; font-size: 24px; font-weight: bold; }
                     .temperature-range { color: #3498db; }
                     .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
                 </style>
@@ -151,34 +160,24 @@ public class WeatherEmailService {
                 </div>
             </body>
             </html>
-            """, city, userName, weatherDTO.time(),
-                weatherDTO.temperatureMin(), weatherDTO.temperatureMax(),
-                weatherDTO.weatherStatus(), weatherDTO.precipitationSum());
+            """, dto.city(), userName, dto.time(),
+                dto.temperatureMin(), dto.temperatureMax(),
+                dto.weatherStatus(), dto.precipitationSum());
     }
 
-    private String buildWeatherTextEmail(String userName, String city, WeatherReceiverDTO weatherDTO) {
+    private String buildWeatherTextEmail(String userName, WeatherReceiverDto dto) {
         return String.format(
-                "🌤️ Weather Update for %s 🌤️\\n\\n" +
-                        "Hello %s!\\n\\n" +
-                        "📅 Time: %s\\n" +
-                        "🌡️ Temperature: %.1f°C - %.1f°C\\n" +
-                        "☁️ Conditions: %s\\n" +
-                        "💧 Precipitation: %.1f mm\\n\\n" +
-                        "Stay prepared and have a great day! 🌈\\n\\n" +
-                        "Thank you for using our weather service!\\n" +
-                        "© 2024 Weather App",
-                city, userName, weatherDTO.time(),
-                weatherDTO.temperatureMin(), weatherDTO.temperatureMax(),
-                weatherDTO.weatherStatus(), weatherDTO.precipitationSum());
-    }
-
-
-    private String escapeJson(String input) {
-        if (input == null) return "";
-        return input.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
+                "🌤️ Weather Update for %s 🌤️\n\n" +
+                        "Hello %s!\n\n" +
+                        "📅 Time: %s\n" +
+                        "🌡️ Temperature: %.1f°C - %.1f°C\n" +
+                        "☁️ Conditions: %s\n" +
+                        "💧 Precipitation: %.1f mm\n\n" +
+                        "Stay prepared and have a great day! 🌈\n\n" +
+                        "Thank you for using our weather service!\n" +
+                        "© 2025 Moistus Inc",
+                dto.city(), userName, dto.time(),
+                dto.temperatureMin(), dto.temperatureMax(),
+                dto.weatherStatus(), dto.precipitationSum());
     }
 }

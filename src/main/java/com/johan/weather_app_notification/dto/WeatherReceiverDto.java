@@ -1,6 +1,10 @@
 package com.johan.weather_app_notification.dto;
 
-public record WeatherReceiverDTO(
+/**
+ * DTO som tar emot väderdata från Weather-tjänsten.
+ * Innehåller väderinformation samt e-postadressen dit datan ska skickas.
+ */
+public record WeatherReceiverDto(
         String time,
         double temperatureMin,
         double temperatureMax,
@@ -8,4 +12,5 @@ public record WeatherReceiverDTO(
         double precipitationSum,
         String city,
         String email
-) {}
+) {
+}
