@@ -24,7 +24,7 @@ public class AuthListener {
      * När en användare/stad kommer in här, skickar vi vidare förfrågan
      * till vädertjänsten för att hämta aktuell data.
      */
-    @RabbitListener(queues = RabbitConfig.QUEUE_AUTH_REQUEST)
+    @RabbitListener(queues = RabbitConfig.QUEUE_AUTH_RESPONSE)
     public void processAuthRequest(EmailCityDto dto) {
         logger.info("Mottog auth-request för email: {} och stad: {}. Skickar vidare till WeatherProducer...",
                 dto.email(), dto.city());
