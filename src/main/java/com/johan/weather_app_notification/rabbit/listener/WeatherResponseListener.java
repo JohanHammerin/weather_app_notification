@@ -1,8 +1,7 @@
 package com.johan.weather_app_notification.rabbit.listener;
 
-import com.johan.weather_app_notification.GlobalVariables.Globals;
 import com.johan.weather_app_notification.config.RabbitConfig;
-import com.johan.weather_app_notification.dto.reciever.WeatherRecieverDTO;
+import com.johan.weather_app_notification.dto.WeatherReceiverDTO;
 import com.johan.weather_app_notification.service.WeatherEmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,20 +23,20 @@ public class WeatherResponseListener {
     }
 
     @RabbitListener(queues = RabbitConfig.WEATHER_WEATHER_RESPONSE_QUEUE)
-    public void handleWeatherResponse(WeatherRecieverDTO weatherDTO) {
+    public void handleWeatherResponse(WeatherReceiverDTO dto) {
         try {
-            String userEmail = Globals.GLOBAL_EMAIL;
-            String city = Globals.GLOBAL_CITY;
+            String userEmail = dto.email();
+            String city = dto.city();
 
             logger.info("🌤️ Received weather data for user: {}, city: {}", userEmail, city);
 
             // Logga väderdata
             logger.info("Weather details for {}:", city);
-            logger.info("   📅 Time: {}", weatherDTO.time());
+            logger.info("   📅 Time: {}", dto.time());
             logger.info("   🌡️ Temperature: {:.1f}°C - {:.1f}°C",
-                    weatherDTO.temperatureMin(), weatherDTO.temperatureMax());
-            logger.info("   ☁️ Status: {}", weatherDTO.weatherStatus());
-            logger.info("   💧 Precipitation: {:.1f} mm", weatherDTO.precipitationSum());
+                    dto.temperatureMin(), dto.temperatureMax());
+            logger.info("   ☁️ Status: {}", dto.weatherStatus());
+            logger.info("   💧 Precipitation: {:.1f} mm", dto.precipitationSum());
 
             // Skicka vädernotifikation med HTML-format
             String recipientName = extractNameFromEmail(userEmail);
@@ -45,7 +44,7 @@ public class WeatherResponseListener {
                     userEmail,
                     recipientName,
                     city,
-                    weatherDTO
+                    dto
             );
 
             if (emailSent) {

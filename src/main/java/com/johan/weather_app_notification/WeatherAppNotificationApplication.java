@@ -1,12 +1,8 @@
 package com.johan.weather_app_notification;
 
-import com.johan.weather_app_notification.dto.producer.WeatherProducerDTO;
-import com.johan.weather_app_notification.rabbit.producer.WeatherProducer;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
 
 @EnableRabbit
 @SpringBootApplication

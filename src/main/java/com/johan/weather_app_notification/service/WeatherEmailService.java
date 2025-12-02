@@ -1,6 +1,6 @@
 package com.johan.weather_app_notification.service;
 
-import com.johan.weather_app_notification.dto.reciever.WeatherRecieverDTO;
+import com.johan.weather_app_notification.dto.WeatherReceiverDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,16 +17,16 @@ import java.util.Base64;
 public class WeatherEmailService {
     private static final Logger logger = LoggerFactory.getLogger(WeatherEmailService.class);
 
-    @Value("${mailjet.api.key:48db850aa133316a9ed3e9bdc1ac7784}")
+    @Value("${mailjet.api.key}")
     private String apiKey;
 
-    @Value("${mailjet.api.secret:a4ae90102fb6ef239be31306d5e34943}")
+    @Value("${mailjet.api.secret}")
     private String secretKey;
 
-    @Value("${mailjet.sender.email:moistusinc@gmail.com}")
+    @Value("${mailjet.sender.email}")
     private String senderEmail;
 
-    @Value("${mailjet.sender.name:Weather App}")
+    @Value("${mailjet.sender.name}")
     private String senderName;
 
     private final HttpClient httpClient;
@@ -39,7 +39,7 @@ public class WeatherEmailService {
 
     // ✅ Här är den viktigaste metoden - kombinerar båda servicernas funktionalitet
     public boolean sendWeatherNotification(String recipientEmail, String recipientName,
-                                           String city, WeatherRecieverDTO weatherDTO) {
+                                           String city, WeatherReceiverDTO weatherDTO) {
 
         String subject = String.format("🌤️ Weather Update for %s", city);
 
@@ -104,7 +104,7 @@ public class WeatherEmailService {
     }
 
     // ✅ Här tar vi med den bra mailbyggnaden från WeatherNotificationService
-    private String buildWeatherHtmlEmail(String userName, String city, WeatherRecieverDTO weatherDTO) {
+    private String buildWeatherHtmlEmail(String userName, String city, WeatherReceiverDTO weatherDTO) {
         return String.format("""
             <!DOCTYPE html>
             <html>
@@ -156,7 +156,7 @@ public class WeatherEmailService {
                 weatherDTO.weatherStatus(), weatherDTO.precipitationSum());
     }
 
-    private String buildWeatherTextEmail(String userName, String city, WeatherRecieverDTO weatherDTO) {
+    private String buildWeatherTextEmail(String userName, String city, WeatherReceiverDTO weatherDTO) {
         return String.format(
                 "🌤️ Weather Update for %s 🌤️\\n\\n" +
                         "Hello %s!\\n\\n" +
@@ -172,10 +172,6 @@ public class WeatherEmailService {
                 weatherDTO.weatherStatus(), weatherDTO.precipitationSum());
     }
 
-    // ✅ Enkel metod för att bara skicka textmail (om du behöver det)
-    public boolean sendSimpleMail(String to, String subject, String text) {
-        return sendMail(to, to.split("@")[0], subject, text, text);
-    }
 
     private String escapeJson(String input) {
         if (input == null) return "";

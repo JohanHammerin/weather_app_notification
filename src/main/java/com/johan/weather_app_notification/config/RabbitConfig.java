@@ -36,21 +36,16 @@ public class RabbitConfig {
     public static final String WEATHER_MAIL_ROUTING_KEY = "weather.mail";
     public static final String WEATHER_SUBSCRIPTION_ROUTING_KEY = "weather.subscription";
 
-    // ✅ FIX: Custom MessageConverter som ignorerar type headers
     @Bean
     public MessageConverter jsonMessageConverter() {
         ObjectMapper objectMapper = new ObjectMapper();
-        // Configure ObjectMapper as needed
         objectMapper.findAndRegisterModules();
-
         Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
-
-        converter.setAlwaysConvertToInferredType(false); // Default behavior
+        converter.setAlwaysConvertToInferredType(false);
 
         return converter;
     }
 
-    // ✅ RABBIT TEMPLATE
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
@@ -58,7 +53,6 @@ public class RabbitConfig {
         return rabbitTemplate;
     }
 
-    // ✅ LISTENER FACTORY
     @Bean
     public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
             ConnectionFactory connectionFactory,
@@ -69,7 +63,6 @@ public class RabbitConfig {
         return factory;
     }
 
-    // ✅ QUEUES
     @Bean
     public Queue requestQueue() {
         return new Queue(WEATHER_WEATHER_REQUEST_QUEUE, true);
@@ -90,7 +83,6 @@ public class RabbitConfig {
         return new Queue(WEATHER_SUBSCRIPTION_QUEUE, true);
     }
 
-    // ✅ AUTH QUEUES - NYA
     @Bean
     public Queue authRequestQueue() {
         return new Queue(WEATHER_AUTH_REQUEST_QUEUE, true);
@@ -101,13 +93,11 @@ public class RabbitConfig {
         return new Queue(WEATHER_AUTH_RESPONSE_QUEUE, true);
     }
 
-    // ✅ EXCHANGE
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(WEATHER_EXCHANGE);
     }
 
-    // ✅ BINDINGS
     @Bean
     public Binding requestBinding() {
         return BindingBuilder
@@ -140,7 +130,6 @@ public class RabbitConfig {
                 .with(WEATHER_SUBSCRIPTION_ROUTING_KEY);
     }
 
-    // ✅ AUTH BINDINGS - NYA
     @Bean
     public Binding authRequestBinding() {
         return BindingBuilder

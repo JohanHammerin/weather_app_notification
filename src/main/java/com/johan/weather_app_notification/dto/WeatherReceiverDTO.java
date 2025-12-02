@@ -1,12 +1,11 @@
-package com.johan.weather_app_notification.dto.reciever;
+package com.johan.weather_app_notification.dto;
 
-import java.util.UUID;
-
-public record WeatherRecieverDTO(
+public record WeatherReceiverDTO(
         String time,
         double temperatureMin,
         double temperatureMax,
         String weatherStatus,
         double precipitationSum,
-        String city
+        String city,
+        String email
 ) {}
