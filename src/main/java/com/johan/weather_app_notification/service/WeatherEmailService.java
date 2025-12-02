@@ -156,7 +156,7 @@ public class WeatherEmailService {
                 <div class="footer">
                     <p>Stay prepared and have a great day! 🌈</p>
                     <p>Thank you for using our weather service!</p>
-                    <p>© 2024 Weather App Notification System.</p>
+                    <p>© 2025 Moistus Inc</p>
                 </div>
             </body>
             </html>
